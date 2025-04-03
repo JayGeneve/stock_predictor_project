@@ -1,2 +1,2 @@
-# stock_predictor_project
- 
+# Proposal
+Fitting Neural Networks to predict asset pricing. 
