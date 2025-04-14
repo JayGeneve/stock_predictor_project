@@ -55,6 +55,7 @@ def main():
     visuals.plot_probability_distribution()
     visuals.plot_feature_correlation()
     visuals.plot_price_with_predictions()
+    visuals.plot_predictions_vs_actual()
 
     # Step 8: Compare with Baseline Models
     baseline = BaselineModels(builder.X_train, builder.X_test, builder.y_train, builder.y_test)

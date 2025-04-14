@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import ConfusionMatrixDisplay, roc_curve, auc
+import pandas as pd
 
 class Visualizer:
     def __init__(self, df, features, y_test, y_probs, model=None, X_test=None):
@@ -69,6 +70,22 @@ class Visualizer:
         ax.scatter(down_signals.index, down_signals['Close'], marker="v", color="red", label="Down Signal")
 
         ax.set_title("Stock Price with Predicted Return Directions")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Price")
+        ax.legend()
+        plt.tight_layout()
+        return fig
+
+    def plot_predictions_vs_actual(self):
+        df_test = self.df.iloc[-len(self.y_test):].copy()
+
+        # Smooth predicted probabilities
+        smoothed_probs = pd.Series(self.y_probs, index=df_test.index).rolling(window=10, min_periods=1).mean()
+
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.plot(df_test.index, df_test['Close'], label="Actual Close Price", color='blue', linewidth=2)
+        ax.plot(df_test.index, smoothed_probs * df_test['Close'].max(), label="Smoothed Prediction (Rescaled)", color='red', linestyle='--')
+        ax.set_title("Smoothed Predictions vs Actual Close Price")
         ax.set_xlabel("Date")
         ax.set_ylabel("Price")
         ax.legend()

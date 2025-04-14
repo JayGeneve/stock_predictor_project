@@ -166,3 +166,6 @@ if predict_button:
 
     with st.expander("💹 Price with Prediction Signals"):
         st.pyplot(visual.plot_price_with_predictions())
+
+    with st.expander("📊 Predictions vs Actual"):
+        st.pyplot(visual.plot_predictions_vs_actual())

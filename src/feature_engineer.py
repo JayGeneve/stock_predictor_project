@@ -11,7 +11,8 @@ class FeatureEngineer:
         self.df['Volatility'] = self.df['Close'].rolling(window=10).std()
         self.df['Return'] = self.df['Close'].pct_change()
 
-        # ✅ New indicators
+        # 
+        # New indicators
         self.df.ta.macd(append=True)
         self.df.ta.bbands(append=True)
         self.df.ta.stochrsi(append=True)

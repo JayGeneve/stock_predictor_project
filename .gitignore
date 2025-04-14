@@ -1,3 +1,7 @@
 venv310/
+<<<<<<< Updated upstream
 venv/
 .DS_Store
+=======
+venv/
+>>>>>>> Stashed changes
