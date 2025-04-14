@@ -51,6 +51,7 @@ For a given model and month, we take Dataset #1 and sort the stocks into 5 bucke
 
 # Outputs
 Display our results on a dashboard
+<img src="Stock Prediction Dashboard.png?raw=true"/>
 
 ## From Dataset #2:
 Tables and figures that show how different models compare in terms of out of sample performance. 
