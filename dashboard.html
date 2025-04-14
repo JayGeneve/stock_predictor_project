@@ -226,11 +226,31 @@
 
     // --- Main Application Logic ---
 
-    const DATA_FILENAME_PREDICTIONS = 'stock_predictions.json';
-    const DATA_FILENAME_PERFORMANCE = 'model_performance.json';
+    // const DATA_FILENAME_PREDICTIONS = 'stock_predictions.json';
+    // const DATA_FILENAME_PERFORMANCE = 'model_performance.json';
 
-    let stockPredictionsData = [];
-    let modelPerformanceData = [];
+    let stockPredictionsData = [
+        { "permno": 1001, "month": "2024-01", "model": "ModelA", "prediction": 0.05 },
+        { "permno": 1002, "month": "2024-01", "model": "ModelA", "prediction": -0.02 },
+        { "permno": 1003, "month": "2024-01", "model": "ModelB", "prediction": 0.08 },
+        { "permno": 1004, "month": "2024-01", "model": "ModelB", "prediction": -0.01 },
+        { "permno": 1001, "month": "2024-02", "model": "ModelA", "prediction": 0.06 },
+        { "permno": 1002, "month": "2024-02", "model": "ModelA", "prediction": -0.03 },
+        { "permno": 1005, "month": "2024-02", "model": "ModelC", "prediction": 0.10 },
+        { "permno": 1006, "month": "2024-02", "model": "ModelC", "prediction": 0.12 },
+        { "permno": 1001, "month": "2024-03", "model": "ModelA", "prediction": 0.07 },
+        { "permno": 1007, "month": "2024-03", "model": "ModelD", "prediction": -0.05 }
+];
+    let modelPerformanceData = [ 
+        { "model": "ModelA", "month": "2024-01", "longShortReturn": 0.03 },
+        { "model": "ModelB", "month": "2024-01", "longShortReturn": 0.06 },
+        { "model": "ModelA", "month": "2024-02", "longShortReturn": 0.04 },
+        { "model": "ModelC", "month": "2024-02", "longShortReturn": 0.09 },
+        { "model": "ModelA", "month": "2024-03", "longShortReturn": 0.05 },
+        { "model": "ModelD", "month": "2024-03", "longShortReturn": 0.02 },
+        { "model": "ModelB", "month": "2024-02", "longShortReturn": 0.07 },
+        { "model": "ModelC", "month": "2024-01", "longShortReturn": 0.08 }
+    ];
 
     /**
      * Initializes the dashboard: loads data, processes it, and renders the charts and tables.
