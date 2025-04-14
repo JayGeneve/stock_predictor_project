@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .dashboard-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <h1 class="text-2xl font-semibold text-gray-800 mb-8 text-center">Stock Return Prediction Dashboard</h1>
+
+    <div class="dashboard-section">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Model Performance</h2>
+        <div class="chart-container">
+            <canvas id="modelPerformanceChart"></canvas>
+        </div>
+        <div id="modelPerformanceTable" class="mt-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Monthly Performance Data</h3>
+            <table class="min-w-full border rounded-md shadow-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Long-Short Return</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Loading Data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="dashboard-section">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Stock Predictions</h2>
+        <div class="chart-container">
+            <canvas id="stockPredictionsChart"></canvas>
+        </div>
+        <div id="stockPredictionsTable" class="mt-6">
+             <h3 class="text-lg font-semibold text-gray-700 mb-2">Stock Level Predictions</h3>
+            <table class="min-w-full border rounded-md shadow-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PERMNO</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prediction</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">Loading Data...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    // --- Helper Functions ---
+
+    /**
+     * Loads data from a JSON file.  Handles potential errors.
+     * @param {string} filename - The name of the JSON file to load.
+     * @returns {Promise<any>} - A promise that resolves with the data or rejects with an error.
+     */
+    const loadJSONData = async (filename) => {
+        try {
+            const response = await fetch(filename);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error loading JSON data:', error);
+            throw error; // Re-throw to be caught by caller
+        }
+    };
+
+    /**
+     * Saves data to a JSON file.  Handles potential errors.
+     * @param {string} filename - The name of the JSON file to save to.
+     * @param {any} data - The data to save.
+     * @returns {Promise<void>} - A promise that resolves when the data is saved or rejects with an error.
+     */
+    const saveJSONData = async (filename, data) => {
+        try {
+            const response = await fetch(filename, {
+                method: 'POST', // Use POST to send data in the body
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data), // Convert data to JSON string
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            // No need to parse JSON response if you're just saving data
+        } catch (error) {
+            console.error('Error saving JSON data:', error);
+            throw error; // Re-throw to be caught by caller
+        }
+    };
+
+    /**
+     * Creates a simple bar chart using Chart.js.
+     * @param {string} canvasId - The ID of the canvas element to render the chart in.
+     * @param {string} title - The title of the chart.
+     * @param {string[]} labels - The labels for the x-axis.
+     * @param {number[]} data - The data for the y-axis.
+     * @param {string} yLabel - Label for the Y axis
+     * @param {string} color - The color of the bars.
+     */
+    const createBarChart = (canvasId, title, labels, data, yLabel, color = 'rgba(75, 192, 192, 0.7)') => {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: data,
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                title: {
+                    display: true,
+                    text: title,
+                    fontColor: '#1e293b',
+                    fontSize: 16
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            fontColor: '#4b5563'
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: yLabel,
+                            fontColor: '#4b5563'
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            fontColor: '#4b5563'
+                        }
+                    }]
+                },
+                legend: {
+                    display: false, // Remove legend for single dataset
+                    position: 'bottom',
+                    labels: {
+                        fontColor: '#4b5563'
+                    }
+                }
+            }
+        });
+    };
+
+    /**
+     * Updates a table with data.
+     * @param {string} tableId - The ID of the table element to update.
+     * @param {Array<Object>} data - An array of objects, where each object represents a row in the table.
+     * The keys of the objects should match the column headers.
+     */
+    const updateTable = (tableId, data) => {
+        const tableBody = document.querySelector(`#${tableId} tbody`);
+        if (!tableBody) {
+            console.error(`Table with ID "${tableId}" not found.`);
+            return;
+        }
+        tableBody.innerHTML = ''; // Clear existing rows
+
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="100%" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">No data available.</td></tr>';
+            return;
+        }
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            for (const key in item) {
+                if (item.hasOwnProperty(key)) { // Safely iterate over object properties
+                    const cell = document.createElement('td');
+                    cell.classList.add('px-6', 'py-4', 'whitespace-nowrap');
+                    cell.textContent = item[key];
+                    row.appendChild(cell);
+                }
+            }
+            tableBody.appendChild(row);
+        });
+    };
+
+    // --- Main Application Logic ---
+
+    const DATA_FILENAME_PREDICTIONS = 'stock_predictions.json';
+    const DATA_FILENAME_PERFORMANCE = 'model_performance.json';
+
+    let stockPredictionsData = [];
+    let modelPerformanceData = [];
+
+    /**
+     * Initializes the dashboard: loads data, processes it, and renders the charts and tables.
+     */
+    const initDashboard = async () => {
+        try {
+            // Load data
+            try {
+                stockPredictionsData = await loadJSONData(DATA_FILENAME_PREDICTIONS);
+            } catch (error) {
+                // If the file doesn't exist or there's an error, start with empty data
+                console.warn(`Could not load ${DATA_FILENAME_PREDICTIONS}, starting with empty data.`, error);
+                stockPredictionsData = [];
+            }
+
+            try {
+                modelPerformanceData = await loadJSONData(DATA_FILENAME_PERFORMANCE);
+            } catch (error) {
+                console.warn(`Could not load ${DATA_FILENAME_PERFORMANCE}, starting with empty data.`, error);
+                modelPerformanceData = [];
+            }
+
+
+            // Process data and render
+            processAndRenderData();
+        } catch (error) {
+           // Handle errors during initialization
+           console.error("Failed to initialize dashboard", error);
+           // Display a user-friendly message on the page
+           document.body.innerHTML = `<div class="text-red-500 text-center p-4">Error: Failed to load data. Please check the console for details.</div>`;
+        }
+    };
+
+    /**
+     * Processes the loaded data and renders the charts and tables.
+     */
+    const processAndRenderData = () => {
+        if (modelPerformanceData.length > 0) {
+            // Extract data for model performance chart
+            const modelNames = [...new Set(modelPerformanceData.map(item => item.model))];
+            const monthlyReturns = modelNames.map(model => {
+                const modelData = modelPerformanceData.filter(item => item.model === model);
+                // Calculate average return for each model
+                const totalReturn = modelData.reduce((sum, item) => sum + item.longShortReturn, 0);
+                return totalReturn / modelData.length; //Simple Average
+            });
+
+            // Create model performance chart
+            createBarChart(
+                'modelPerformanceChart',
+                'Average Monthly Long-Short Returns',
+                modelNames,
+                monthlyReturns,
+                'Average Return',
+                'rgba(56, 189, 248, 0.7)' // Tailwind sky-400
+            );
+             // Update the model performance table
+            updateTable('modelPerformanceTable', modelPerformanceData);
+        } else {
+            // Display a message if there is no model performance data.
+            const chartContainer = document.getElementById('modelPerformanceChart');
+            chartContainer.innerHTML = '<div class="text-gray-500 text-center p-4">No model performance data available.</div>';
+            updateTable('modelPerformanceTable', []); // Clear table
+        }
+
+        if (stockPredictionsData.length > 0) {
+            // Extract data for stock predictions chart.  Limit to the first 20 for clarity.
+            const models = [...new Set(stockPredictionsData.map(item => item.model))];
+            const samplePredictions = stockPredictionsData.slice(0, 20); // Limit number of data points
+            const permnoMonths = samplePredictions.map(item => `${item.permno}-${item.month}`);
+             const predictionValues = samplePredictions.map(item => item.prediction);
+
+            // Create stock predictions chart
+            createBarChart(
+                'stockPredictionsChart',
+                'Sample Stock Predictions (First 20)',
+                permnoMonths,
+                predictionValues,
+                'Prediction',
+                'rgba(252, 211, 77, 0.7)' // Tailwind amber-400
+            );
+
+            // Update the stock predictions table
+            updateTable('stockPredictionsTable', stockPredictionsData);
+        } else {
+            // Display a message if there is no stock predictions data.
+            const chartContainer = document.getElementById('stockPredictionsChart');
+            chartContainer.innerHTML = '<div class="text-gray-500 text-center p-4">No stock predictions data available.</div>';
+            updateTable('stockPredictionsTable', []); // Clear table
+        }
+    };
+
+    // --- Data Update Handlers ---
+
+    /**
+     * Adds new stock prediction data.  This function simulates adding data as the models run.
+     * @param {Array<Object>} newData - An array of new stock prediction objects.
+     * Each object should have: { permno, month, model, prediction }
+     */
+    const addStockPredictions = async (newData) => {
+        stockPredictionsData.push(...newData); // Add new data
+        // Save the updated data
+        try {
+            await saveJSONData(DATA_FILENAME_PREDICTIONS, stockPredictionsData);
+            console.log('Stock predictions data updated and saved.');
+            processAndRenderData(); // Re-render the dashboard to show the new data
+        } catch (error) {
+            console.error('Error saving stock predictions data:', error);
+            // Optionally, display an error message to the user
+        }
+    };
+
+     /**
+     * Adds new model performance data.
+     * @param {Array<Object>} newData - An array of new model performance objects.
+     * Each object should have: { model, month, longShortReturn }
+     */
+    const addModelPerformance = async (newData) => {
+        modelPerformanceData.push(...newData);
+        try {
+            await saveJSONData(DATA_FILENAME_PERFORMANCE, modelPerformanceData);
+            console.log('Model performance data updated and saved.');
+            processAndRenderData();
+        } catch (error) {
+            console.error('Error saving model performance data:', error);
+        }
+    };
+
+    // --- Simulation ---
+    // Simulate new data arriving over time (for demonstration purposes)
+    const simulateDataUpdates = () => {
+        // Example stock prediction data
+        const newStockPredictions = [
+            { permno: 1001, month: '2024-01', model: 'ModelA', prediction: 0.05 },
+            { permno: 1002, month: '2024-01', model: 'ModelA', prediction: -0.02 },
+            { permno: 1003, month: '2024-01', model: 'ModelB', prediction: 0.08 },
+            { permno: 1004, month: '2024-01', model: 'ModelB', prediction: -0.01 },
+            { permno: 1001, month: '2024-02', model: 'ModelA', prediction: 0.06 },
+            { permno: 1002, month: '2024-02', model: 'ModelA', prediction: -0.03 },
+            { permno: 1005, month: '2024-02', model: 'ModelC', prediction: 0.10}
+        ];
+
+        const newModelPerformanceData = [
+            { model: 'ModelA', month: '2024-01', longShortReturn: 0.03 },
+            { model: 'ModelB', month: '2024-01', longShortReturn: 0.06 },
+            { model: 'ModelA', month: '2024-02', longShortReturn: 0.04 },
+            { model: 'ModelC', month: '2024-02', longShortReturn: 0.09}
+        ];
+
+        // Add data in intervals
+        setTimeout(() => {
+            console.log('Adding initial data...');
+            addStockPredictions(newStockPredictions.slice(0, 4));
+            addModelPerformance(newModelPerformanceData.slice(0, 2));
+        }, 1000);
+
+        setTimeout(() => {
+            console.log('Adding more data...');
+            addStockPredictions(newStockPredictions.slice(4));
+            addModelPerformance(newModelPerformanceData.slice(2));
+        }, 3000);
+    };
+
+    // --- Initialize the dashboard on page load ---
+    initDashboard();
+    simulateDataUpdates(); // Start the simulation
+    </script>
+</body>
+</html>
