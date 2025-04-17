@@ -58,7 +58,7 @@ Think of this as building a dataset like the midterm. For a PERMNO-month (row), 
 
 * Display our results on a dashboard. We want to communicate clearly with the reader the most favorable models for their zero-cost portfolio. The mock dashboard shows for individual stocks the returns predicted under different NNs. Our hope is to incorporate some individual stock returns down the line to give the reader a better understanding of their portfolio.
 
-<img src="Stock Prediction Dashboard/image.png?raw=true"/>
+<img src="Stock Prediction Dashboard.png?raw=true"/>
 
 **Gemini Canvas Dashboard**  
 ![][image2]  
