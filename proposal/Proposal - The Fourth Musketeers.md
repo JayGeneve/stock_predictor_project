@@ -61,7 +61,7 @@ Think of this as building a dataset like the midterm. For a PERMNO-month (row), 
 <img src="Stock Prediction Dashboard.png?raw=true"/>
 
 **Gemini Canvas Dashboard**  
-![][image2]  
+<img src="Stock Return Prediction Dashboard.png?raw=true"/>  
 Canvas’ dashboard provides clear model performance metrics, which we like for its simplicity and ease of use. But we will be seeking more specificity in terms of models, returns, and opportunity cost of investors. 
 
 * From Dataset \#2:
@@ -72,12 +72,12 @@ Canvas’ dashboard provides clear model performance metrics, which we like for 
 
   A plot of the cumulative returns to each possible model (the long-short portfolio), as though we traded it out of sample from 2000-2024.
 
-![][image3]  
+<img src="Total Value of Investment.png?raw=true"/> 
 This cumulative returns plot taken from another asset pricing model shows a comparison between two model parameters and the S\&P 500\. A performance indicator like this would be very useful for an investor looking to maximize returns using our dashboard. 
 
 * We will pick our favorite model, and then use the stock-level predictions to make the **Canonical Asset Pricing Table 1**.
 
-![][image4]
+<img src="Canonical Table 1.png?raw=true"/>
 
 * Finally, we will try to upload our stock prediction signals (Dataset \#1) to [Assaying Anomalies](https://sites.psu.edu/assayinganomalies/upload/) and get a report back. 
 
