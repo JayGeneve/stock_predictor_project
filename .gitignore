@@ -3,9 +3,5 @@ venv310/
 venv/
 .DS_Store
 signed_predictors_dl_wide.zip
-signals.csv
-=======
-venv/
->>>>>>> Stashed changes
-.DS_Store
 signals.zip
+signals.csv
