@@ -8,6 +8,18 @@ np.random.seed(42)
 n_points = 100
 dates = pd.to_datetime(pd.date_range(start="2024-01-01", periods=n_points))
 
+# Ticker Data
+tickers = ["AAPL", "GOOGL", "MSFT", "AMZN"]
+selected_ticker = st.sidebar.selectbox("Ticker", tickers)
+
+# Model Type
+model_types = ["LSTM", "GRU", "Transformer"]
+selected_model = st.sidebar.selectbox("Model Type", model_types)
+
+# Fold Type (CV)
+fold_types = ["Rolling", "Expanding"]
+selected_fold = st.sidebar.selectbox("Fold Type (CV)", fold_types)
+
 # Function to generate pseudo-predictions based on selections
 def generate_predictions(actual_prices, selected_ticker, selected_model, selected_fold):
     noise_level = 0
@@ -34,9 +46,6 @@ def generate_predictions(actual_prices, selected_ticker, selected_model, selecte
 
     return actual_prices + np.random.normal(0, 0.5 * noise_level, n_points)
 
-# Ticker Data
-tickers = ["AAPL", "GOOGL", "MSFT", "AMZN"]
-selected_ticker = st.sidebar.selectbox("Ticker", tickers)
 actual_prices_aapl = np.random.randint(80, 180, n_points) + np.cumsum(np.random.normal(0, 2, n_points))
 actual_prices_googl = np.random.randint(1500, 2500, n_points) + np.cumsum(np.random.normal(0, 5, n_points))
 actual_prices_msft = np.random.randint(200, 350, n_points) + np.cumsum(np.random.normal(0, 3, n_points))
@@ -71,14 +80,6 @@ sp500_predictions_dict = {
 }
 sp500_predictions = sp500_predictions_dict[(selected_model, selected_fold)]
 df_sp500 = pd.DataFrame({"Date": dates, "S&P 500 Actual": sp500_actual, "S&P 500 Predictions": sp500_predictions})
-
-# Model Type
-model_types = ["LSTM", "GRU", "Transformer"]
-selected_model = st.sidebar.selectbox("Model Type", model_types)
-
-# Fold Type (CV)
-fold_types = ["Rolling", "Expanding"]
-selected_fold = st.sidebar.selectbox("Fold Type (CV)", fold_types)
 
 # Metrics Data (dependent on selections for demonstration)
 def generate_metrics(selected_ticker, selected_model, selected_fold):
